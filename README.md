@@ -10,7 +10,7 @@ This project aims to calculate the value of pi (π) using the Chudnovsky algorit
 
 ## Project Structure
 ```
-testMaven/
+Picalculating/
 ├── pom.xml
 ├── src/
 │ ├── main/
@@ -46,8 +46,8 @@ These dependencies are managed in the {insert\_element\_0\_YHBvbS54bWxg} file. M
 ## Steps to Run
 ### 1. Clone the Project
 ```bash
-git clone https://github.com/your-repo-url/testMaven.git
-cd testMaven
+git clone https://github.com/your-repo-url/Picalculating.git
+cd Picalculating
 ```
 
 ### 2. Compile the Project
