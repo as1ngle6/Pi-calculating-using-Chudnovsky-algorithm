@@ -1,0 +1,41 @@
+Precision: 100
+Single-threaded time: 30 ms
+Multi-threaded time: 11 ms
+-------------------------------------------
+Precision: 1000
+Single-threaded time: 58 ms
+Multi-threaded time: 47 ms
+-------------------------------------------
+Precision: 10000
+Single-threaded time: 4008 ms
+Multi-threaded time: 1328 ms
+-------------------------------------------
+Precision: 50000
+Single-threaded time: 385697 ms
+Multi-threaded time: 113658 ms
+-------------------------------------------
+Precision: 100000
+Single-threaded time: 2800941 ms
+Multi-threaded time: 854352 ms
+-------------------------------------------
+
+Precision: 100
+Single-threaded memory usage: 1740512 bytes
+Multi-threaded memory usage: 85544 bytes
+----------------------------------
+Precision: 1000
+Single-threaded memory usage: 2233384 bytes
+Multi-threaded memory usage: 1620288 bytes
+----------------------------------
+Precision: 10000
+Single-threaded memory usage: 198387408 bytes
+Multi-threaded memory usage: 590870304 bytes
+----------------------------------
+Precision: 50000
+Single-threaded memory usage: 258736480 bytes
+Multi-threaded memory usage: 685268400 bytes
+----------------------------------
+Precision: 100000
+Single-threaded memory usage: 427974008 bytes
+Multi-threaded memory usage: 1095973592 bytes
+----------------------------------

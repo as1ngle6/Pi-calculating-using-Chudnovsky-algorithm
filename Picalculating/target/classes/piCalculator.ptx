@@ -1,0 +1,97 @@
+.version 4.3
+.target sm_90
+.address_size 64
+
+.visible .entry calculatePiTerms(
+    .param .u64 partialSums_ptr,
+    .param .u32 kLimit,
+    .param .u32 precision
+)
+{
+    .reg .pred      %p<3>;
+    .reg .f64       %fd<30>;
+    .reg .b32       %r<30>;
+    .reg .b64       %rd<12>;
+
+    // 加载参数
+    ld.param.u64    %rd1, [partialSums_ptr];
+    ld.param.u32    %r1, [kLimit];
+
+    // 计算全局线程ID: k = blockIdx.x * blockDim.x + threadIdx.x
+    mov.u32         %r2, %ctaid.x;
+    mov.u32         %r3, %ntid.x;
+    mov.u32         %r4, %tid.x;
+    mad.lo.s32      %r5, %r2, %r3, %r4;
+
+    // 检查是否超出范围
+    setp.ge.s32     %p1, %r5, %r1;
+    @%p1 bra        END;
+
+    // 计算输出地址: partialSums[k]
+    cvta.to.global.u64 %rd2, %rd1;
+    mul.wide.s32    %rd3, %r5, 8;
+    add.s64         %rd4, %rd2, %rd3;
+
+    // 转换为双精度
+    cvt.rn.f64.s32  %fd1, %r5;
+
+    // 计算 (13591409 + 545140134 * k)
+    mov.f64         %fd2, 545140134.0;
+    mul.f64         %fd3, %fd2, %fd1;
+    mov.f64         %fd4, 13591409.0;
+    add.f64         %fd5, %fd3, %fd4;
+
+    // 计算 (-1)^k
+    and.b32         %r6, %r5, 1;
+    setp.eq.s32     %p2, %r6, 1;
+    mov.f64         %fd6, -1.0;
+    mov.f64         %fd7, 1.0;
+    selp.f64        %fd8, %fd6, %fd7, %p2;
+
+    // 使用斯特林公式近似阶乘
+    // ln(n!) ≈ n*ln(n) - n
+
+    // 计算 ln((6k)!)
+    mul.f64         %fd9, %fd1, 6.0;     // 6k
+    ln.approx.f64   %fd10, %fd9;         // ln(6k)
+    mul.f64         %fd11, %fd9, %fd10;
+    sub.f64         %fd12, %fd11, %fd9;  // ln((6k)!)
+
+    // 计算 ln((3k)!)
+    mul.f64         %fd13, %fd1, 3.0;    // 3k
+    ln.approx.f64   %fd14, %fd13;         // ln(3k)
+    mul.f64         %fd15, %fd13, %fd14;
+    sub.f64         %fd16, %fd15, %fd13; // ln((3k)!)
+
+    // 计算 3 * ln(k!)
+    ln.approx.f64   %fd17, %fd1;         // ln(k)
+    mul.f64         %fd18, %fd1, %fd17;
+    sub.f64         %fd19, %fd18, %fd1;  // ln(k!)
+    mul.f64         %fd20, %fd19, 3.0;   // 3 * ln(k!)
+
+    // 计算分母部分: ln((3k)!) + 3*ln(k!)
+    add.f64         %fd21, %fd16, %fd20;
+
+    // 计算 ln(640320^(3k))
+    mov.f64         %fd22, 640320.0;
+    ln.approx.f64   %fd23, %fd22;         // ln(640320)
+    mul.f64         %fd24, %fd23, 3.0;
+    mul.f64         %fd25, %fd24, %fd1;   // 3k * ln(640320)
+
+    // 组合所有部分
+    add.f64         %fd26, %fd21, %fd25; // 分母的ln值
+    sub.f64         %fd27, %fd12, %fd26; // 分子的ln值减去分母的ln值
+
+    // 指数转换回线性空间
+    ex2.approx.f64  %fd28, %fd27;        // e^(ln(term))
+
+    // 乘以剩余部分
+    mul.f64         %fd29, %fd5, %fd8;   // sign * (13591409 + 545140134*k)
+    mul.f64         %fd30, %fd29, %fd28; // 最终项
+
+    // 存储结果
+    st.global.f64   [%rd4], %fd30;
+
+END:
+    ret;
+}
